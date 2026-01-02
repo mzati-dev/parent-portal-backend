@@ -404,6 +404,37 @@ export class StudentsService {
     });
   }
 
+  // async create(studentData: any) {
+  //   const classEntity = await this.classRepository.findOne({
+  //     where: { id: studentData.class_id }
+  //   });
+
+  //   if (!classEntity) {
+  //     throw new NotFoundException(`Class ${studentData.class_id} not found`);
+  //   }
+
+  //   const studentCount = await this.studentRepository.count({
+  //     where: { class: { id: studentData.class_id } }
+  //   });
+
+  //   const classCode = classEntity.name
+  //     .replace(/[^a-zA-Z0-9]/g, '')
+  //     .toUpperCase()
+  //     .substring(0, 6);
+  //   const nextNumber = studentCount + 1;
+  //   const examNumber = `${classCode}-${nextNumber.toString().padStart(3, '0')}`;
+
+  //   const student = this.studentRepository.create({
+  //     name: studentData.name,
+  //     examNumber: examNumber,
+  //     class: classEntity,
+  //     photoUrl: studentData.photo_url,
+  //   });
+
+  //   return this.studentRepository.save(student);
+  // }
+
+
   async create(studentData: any) {
     const classEntity = await this.classRepository.findOne({
       where: { id: studentData.class_id }
@@ -413,16 +444,29 @@ export class StudentsService {
       throw new NotFoundException(`Class ${studentData.class_id} not found`);
     }
 
-    const studentCount = await this.studentRepository.count({
-      where: { class: { id: studentData.class_id } }
+    const currentYear = new Date().getFullYear().toString().slice(-2);
+    const classNumberMatch = classEntity.name.match(/\d+/);
+    const classNumber = classNumberMatch ? classNumberMatch[0] : '0';
+    const prefix = `${currentYear}-${classNumber}`;
+
+    const allStudents = await this.studentRepository.find({
+      select: ['examNumber'],
+      where: {
+        examNumber: Like(`${prefix}%`)
+      },
+      order: { examNumber: 'DESC' },
+      take: 1
     });
 
-    const classCode = classEntity.name
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .toUpperCase()
-      .substring(0, 6);
-    const nextNumber = studentCount + 1;
-    const examNumber = `${classCode}-${nextNumber.toString().padStart(3, '0')}`;
+    let nextNumber = 1;
+    if (allStudents.length > 0 && allStudents[0].examNumber) {
+      const lastExamNumber = allStudents[0].examNumber;
+      const lastNumberStr = lastExamNumber.slice(prefix.length); // FIXED: Removed +1
+      const lastNumber = parseInt(lastNumberStr) || 0;
+      nextNumber = lastNumber + 1;
+    }
+
+    const examNumber = `${prefix}${nextNumber.toString().padStart(3, '0')}`;
 
     const student = this.studentRepository.create({
       name: studentData.name,
