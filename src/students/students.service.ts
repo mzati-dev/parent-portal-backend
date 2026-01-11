@@ -107,9 +107,15 @@ export class StudentsService {
       }
     });
 
+    // Object.values(subjectMap).forEach((subject: any) => {
+    //   subject.finalScore = this.calculateFinalScore(subject, gradeConfig);
+    //   // subject.grade = this.calculateGrade(subject.finalScore);
+    //   subject.grade = this.calculateGrade(subject.finalScore, gradeConfig);
+    // });
+
     Object.values(subjectMap).forEach((subject: any) => {
-      subject.finalScore = this.calculateFinalScore(subject, gradeConfig);
-      // subject.grade = this.calculateGrade(subject.finalScore);
+      // Pass student.assessments to calculateFinalScore
+      subject.finalScore = this.calculateFinalScore(subject, gradeConfig, student.assessments);
       subject.grade = this.calculateGrade(subject.finalScore, gradeConfig);
     });
 
@@ -239,48 +245,103 @@ export class StudentsService {
   //   }
   // }
 
-  private calculateFinalScore(subject: any, gradeConfig: any): number {
-    // Convert null to 0 for calculations
+
+  // private calculateFinalScore(subject: any, gradeConfig: any): number {
+  //   const qa1 = subject.qa1 || 0;
+  //   const qa2 = subject.qa2 || 0;
+  //   const endOfTerm = subject.endOfTerm || 0;
+
+  //   switch (gradeConfig.calculation_method) {
+  //     case 'average_all':
+  //       return (qa1 + qa2 + endOfTerm) / 3;
+
+  //     case 'end_of_term_only':
+  //       return endOfTerm;
+
+  //     case 'weighted_average':
+  //       return (qa1 * gradeConfig.weight_qa1 +
+  //         qa2 * gradeConfig.weight_qa2 +
+  //         endOfTerm * gradeConfig.weight_end_of_term) / 100;
+
+  //     default:
+  //       return (qa1 + qa2 + endOfTerm) / 3;
+  //   }
+  // }
+
+  private calculateFinalScore(subject: any, gradeConfig: any, studentAssessments?: any[]): number {
     const qa1 = subject.qa1 || 0;
     const qa2 = subject.qa2 || 0;
     const endOfTerm = subject.endOfTerm || 0;
 
+    // CHECK: If student has QA1/QA2 but NO End of Term → force end_of_term_only
+    if (studentAssessments) {
+      const hasQA1 = studentAssessments.some(a => a.assessmentType === 'qa1' && a.score > 0);
+      const hasQA2 = studentAssessments.some(a => a.assessmentType === 'qa2' && a.score > 0);
+      const hasEndOfTerm = studentAssessments.some(a => a.assessmentType === 'end_of_term' && a.score > 0);
+
+      // Force end_of_term_only if only QA1/QA2 are entered
+      if ((hasQA1 || hasQA2) && !hasEndOfTerm) {
+        return endOfTerm; // This will be 0 until End of Term is entered
+      }
+    }
+
+    // Original calculation
     switch (gradeConfig.calculation_method) {
       case 'average_all':
-        // Count actual assessments (with scores > 0)
-        const assessments = [qa1, qa2, endOfTerm].filter(score => score > 0);
-        if (assessments.length === 0) return 0;
-        return assessments.reduce((sum, score) => sum + score, 0) / assessments.length;
-
+        return (qa1 + qa2 + endOfTerm) / 3;
       case 'end_of_term_only':
-        return endOfTerm > 0 ? endOfTerm : 0;
-
+        return endOfTerm;
       case 'weighted_average':
-        // Only include assessments with scores
-        let totalWeight = 0;
-        let weightedSum = 0;
-
-        if (qa1 > 0) {
-          weightedSum += qa1 * gradeConfig.weight_qa1;
-          totalWeight += gradeConfig.weight_qa1;
-        }
-        if (qa2 > 0) {
-          weightedSum += qa2 * gradeConfig.weight_qa2;
-          totalWeight += gradeConfig.weight_qa2;
-        }
-        if (endOfTerm > 0) {
-          weightedSum += endOfTerm * gradeConfig.weight_end_of_term;
-          totalWeight += gradeConfig.weight_end_of_term;
-        }
-
-        return totalWeight > 0 ? weightedSum / totalWeight : 0;
-
+        return (qa1 * gradeConfig.weight_qa1 +
+          qa2 * gradeConfig.weight_qa2 +
+          endOfTerm * gradeConfig.weight_end_of_term) / 100;
       default:
-        const defaultAssessments = [qa1, qa2, endOfTerm].filter(score => score > 0);
-        if (defaultAssessments.length === 0) return 0;
-        return defaultAssessments.reduce((sum, score) => sum + score, 0) / defaultAssessments.length;
+        return (qa1 + qa2 + endOfTerm) / 3;
     }
   }
+
+  // private calculateFinalScore(subject: any, gradeConfig: any): number {
+  //   // Convert null to 0 for calculations
+  //   const qa1 = subject.qa1 || 0;
+  //   const qa2 = subject.qa2 || 0;
+  //   const endOfTerm = subject.endOfTerm || 0;
+
+  //   switch (gradeConfig.calculation_method) {
+  //     case 'average_all':
+  //       // Count actual assessments (with scores > 0)
+  //       const assessments = [qa1, qa2, endOfTerm].filter(score => score > 0);
+  //       if (assessments.length === 0) return 0;
+  //       return assessments.reduce((sum, score) => sum + score, 0) / assessments.length;
+
+  //     case 'end_of_term_only':
+  //       return endOfTerm > 0 ? endOfTerm : 0;
+
+  //     case 'weighted_average':
+  //       // Only include assessments with scores
+  //       let totalWeight = 0;
+  //       let weightedSum = 0;
+
+  //       if (qa1 > 0) {
+  //         weightedSum += qa1 * gradeConfig.weight_qa1;
+  //         totalWeight += gradeConfig.weight_qa1;
+  //       }
+  //       if (qa2 > 0) {
+  //         weightedSum += qa2 * gradeConfig.weight_qa2;
+  //         totalWeight += gradeConfig.weight_qa2;
+  //       }
+  //       if (endOfTerm > 0) {
+  //         weightedSum += endOfTerm * gradeConfig.weight_end_of_term;
+  //         totalWeight += gradeConfig.weight_end_of_term;
+  //       }
+
+  //       return totalWeight > 0 ? weightedSum / totalWeight : 0;
+
+  //     default:
+  //       const defaultAssessments = [qa1, qa2, endOfTerm].filter(score => score > 0);
+  //       if (defaultAssessments.length === 0) return 0;
+  //       return defaultAssessments.reduce((sum, score) => sum + score, 0) / defaultAssessments.length;
+  //   }
+  // }
 
   private calculateAssessmentStats(studentData: any, gradeConfig: any) {
     const subjects = studentData.subjects;
@@ -629,15 +690,63 @@ export class StudentsService {
     });
   }
 
+  // async upsertAssessment(assessmentData: any) {
+  //   const activeConfig = await this.getActiveGradeConfiguration();
+  //   const data = {
+  //     student: { id: assessmentData.student_id || assessmentData.studentId },
+  //     subject: { id: assessmentData.subject_id || assessmentData.subjectId },
+  //     assessmentType: assessmentData.assessment_type || assessmentData.assessmentType,
+  //     score: assessmentData.score,
+  //     // grade: assessmentData.grade,
+
+  //     grade: this.calculateGrade(assessmentData.score, activeConfig),
+  //   };
+
+  //   const existing = await this.assessmentRepository.findOne({
+  //     where: {
+  //       student: { id: data.student.id },
+  //       subject: { id: data.subject.id },
+  //       assessmentType: data.assessmentType,
+  //     },
+  //   });
+
+  //   if (existing) {
+  //     Object.assign(existing, {
+  //       score: data.score,
+  //       grade: data.grade,
+  //     });
+  //     return this.assessmentRepository.save(existing);
+  //   } else {
+  //     const assessment = this.assessmentRepository.create(data);
+  //     return this.assessmentRepository.save(assessment);
+  //   }
+  // }
+
   async upsertAssessment(assessmentData: any) {
+    // ADD THIS AT THE START - deletes if score is 0
+    if (assessmentData.score === 0) {
+      const existing = await this.assessmentRepository.findOne({
+        where: {
+          student: { id: assessmentData.student_id || assessmentData.studentId },
+          subject: { id: assessmentData.subject_id || assessmentData.subjectId },
+          assessmentType: assessmentData.assessment_type || assessmentData.assessmentType,
+        },
+      });
+
+      if (existing) {
+        await this.assessmentRepository.remove(existing);
+        return { deleted: true };
+      }
+      return { deleted: true };
+    }
+
+    // KEEP EVERYTHING ELSE EXACTLY THE SAME
     const activeConfig = await this.getActiveGradeConfiguration();
     const data = {
       student: { id: assessmentData.student_id || assessmentData.studentId },
       subject: { id: assessmentData.subject_id || assessmentData.subjectId },
       assessmentType: assessmentData.assessment_type || assessmentData.assessmentType,
       score: assessmentData.score,
-      // grade: assessmentData.grade,
-
       grade: this.calculateGrade(assessmentData.score, activeConfig),
     };
 
