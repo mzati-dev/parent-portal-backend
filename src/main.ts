@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { DataSource } from 'typeorm';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,9 +10,46 @@ async function bootstrap() {
 
   // REMOVE THIS LINE: app.setGlobalPrefix('api');
 
+  // ========== START OF ADDED CODE ==========
+  const dataSource = app.get(DataSource);
+  await createSuperAdmin(dataSource);
+  // ========== END OF ADDED CODE ==========
+
   await app.listen(3000);
   console.log(`🚀 Server ready at http://localhost:3000`);
 }
+
+// ========== START OF NEW FUNCTION ==========
+async function createSuperAdmin(dataSource: DataSource) {
+  try {
+    const userRepository = dataSource.getRepository('User');
+
+    const adminExists = await userRepository.findOne({
+      where: { email: 'admin@parentportal.com' }
+    });
+
+    if (adminExists) {
+      console.log('✅ Super admin already exists');
+      return;
+    }
+
+    // Let TypeORM handle column names
+    const admin = userRepository.create({
+      fullName: 'Super Admin',
+      email: 'admin@parentportal.com',
+      password: 'Admin@123', // Will be auto-hashed
+      role: 'super_admin',
+      isEmailVerified: true
+    });
+
+    await userRepository.save(admin);
+    console.log('✅ Super admin created: admin@parentportal.com / Admin@123');
+
+  } catch (error) {
+    console.log('Error creating admin:', error.message);
+  }
+}
+// ========== END OF NEW FUNCTION ==========
 bootstrap();
 
 // import { NestFactory } from '@nestjs/core';
