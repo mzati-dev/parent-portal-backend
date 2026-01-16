@@ -1,6 +1,7 @@
 // src/students/entities/class.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Student } from './student.entity';
+import { School } from 'src/schools/entities/school.entity';
 
 @Entity('classes')
 export class Class {
@@ -18,6 +19,14 @@ export class Class {
 
     @Column({ unique: true })
     class_code: string;  // Auto-generated: e.g., "GR8A-2025-T1"
+
+    // ADD SCHOOL RELATION
+    @ManyToOne(() => School, school => school.classes, { nullable: true })
+    @JoinColumn({ name: 'schoolId' })
+    school?: School;
+
+    @Column({ nullable: true })
+    schoolId?: string;
 
     @OneToMany(() => Student, (student) => student.class)
     students: Student[];

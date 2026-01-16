@@ -7,6 +7,7 @@ import { User } from '../users/user.entity';
 import { PasswordResetToken } from '../users/password-reset-token.entity';
 import { EmailService } from './email.service';
 import * as bcrypt from 'bcryptjs';
+import { School } from 'src/schools/entities/school.entity';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,8 @@ export class AuthService {
         private usersRepository: Repository<User>,
         @InjectRepository(PasswordResetToken)
         private resetTokenRepository: Repository<PasswordResetToken>,
+        @InjectRepository(School) // ADD THIS
+        private schoolRepository: Repository<School>, // ADD THIS
         private jwtService: JwtService,
         private emailService: EmailService,
     ) { }
@@ -40,27 +43,79 @@ export class AuthService {
     //     return result;
     // }
 
+    // async validateUser(email: string, password: string): Promise<any> {
+    //     const user = await this.usersRepository.findOne({ where: { email } });
+
+    //     if (!user) {
+    //         throw new UnauthorizedException('Invalid credentials');
+    //     }
+
+    //     const isPasswordValid = await user.validatePassword(password);
+
+    //     if (!isPasswordValid) {
+    //         throw new UnauthorizedException('Invalid credentials');
+    //     }
+
+    //     if (!user.isEmailVerified) {
+    //         throw new UnauthorizedException('Please verify your email address first');
+    //     }
+
+    //     // Return ALL user fields including role
+    //     const { password: _, ...result } = user;
+    //     return result; // This should include role now
+    // }
+
+    // ===== START: MODIFIED validateUser method =====
     async validateUser(email: string, password: string): Promise<any> {
-        const user = await this.usersRepository.findOne({ where: { email } });
+        // First, check regular users
+        let user = await this.usersRepository.findOne({ where: { email } });
 
-        if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+        if (user) {
+            // Validate password for regular user
+            const isPasswordValid = await user.validatePassword(password);
+            if (!isPasswordValid) {
+                throw new UnauthorizedException('Invalid credentials');
+            }
+
+            if (!user.isEmailVerified) {
+                throw new UnauthorizedException('Please verify your email address first');
+            }
+
+            const { password: _, ...result } = user;
+            return result; // Returns regular user with role
         }
 
-        const isPasswordValid = await user.validatePassword(password);
+        // If not found in users, check school admins
+        const school = await this.schoolRepository.findOne({
+            where: {
+                adminEmail: email,
+                isActive: true
+            }
+        });
 
-        if (!isPasswordValid) {
-            throw new UnauthorizedException('Invalid credentials');
+        if (school) {
+            // Validate password for school admin
+            const isPasswordValid = await bcrypt.compare(password, school.adminPassword);
+            if (!isPasswordValid) {
+                throw new UnauthorizedException('Invalid credentials');
+            }
+
+            // Return school as a user object
+            return {
+                id: school.id,
+                email: school.adminEmail,
+                fullName: school.adminName,
+                role: school.role || 'school_admin',
+                isEmailVerified: true,
+                schoolId: school.id, // Add schoolId for reference
+                schoolName: school.name, // Add school name
+            };
         }
 
-        if (!user.isEmailVerified) {
-            throw new UnauthorizedException('Please verify your email address first');
-        }
-
-        // Return ALL user fields including role
-        const { password: _, ...result } = user;
-        return result; // This should include role now
+        // If neither found
+        throw new UnauthorizedException('Invalid credentials');
     }
+    // ===== END: MODIFIED validateUser method =====
 
     // async login(user: any) {
     //     const payload = { email: user.email, sub: user.id, fullName: user.fullName };
@@ -75,22 +130,80 @@ export class AuthService {
     //     };
     // }
 
+    // async login(user: any) {
+    //     const payload = {
+    //         email: user.email,
+    //         sub: user.id,
+    //         fullName: user.fullName,
+    //         role: user.role || 'user'
+    //     }
+
+
+    //     return {
+    //         user: {
+    //             id: user.id,
+    //             email: user.email,
+    //             fullName: user.fullName,
+    //             role: user.role || 'user',
+    //             isEmailVerified: user.isEmailVerified,
+    //         },
+    //         access_token: this.jwtService.sign(payload),
+    //     };
+    // }
+
+    // async login(user: any) {
+    //     const payload = {
+    //         email: user.email,
+    //         sub: user.id,
+    //         fullName: user.fullName,
+    //         role: user.role || 'user',           // Keep this from your 2nd version
+    //         schoolId: user.schoolId || null,     // Add this line only
+    //     };
+
+    //     return {
+    //         user: {
+    //             id: user.id,
+    //             email: user.email,
+    //             fullName: user.fullName,
+    //             role: user.role || 'user',       // Keep this from your 2nd version
+    //             isEmailVerified: user.isEmailVerified,
+    //             // Add school info if available
+    //             ...(user.schoolId && {
+    //                 schoolId: user.schoolId,
+    //                 schoolName: user.schoolName,
+    //             }),
+    //         },
+    //         access_token: this.jwtService.sign(payload),
+    //     };
+    // }
+
+
     async login(user: any) {
         const payload = {
             email: user.email,
             sub: user.id,
             fullName: user.fullName,
-            role: user.role || 'user'
+            role: user.role || 'user',
+            schoolId: user.schoolId || null, // ← This works
         };
 
+        // Build user response
+        const userResponse: any = {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            role: user.role || 'user',
+            isEmailVerified: user.isEmailVerified,
+        };
+
+        // Add school info if it exists in the user object
+        if (user.schoolId) {
+            userResponse.schoolId = user.schoolId;
+            userResponse.schoolName = user.schoolName;
+        }
+
         return {
-            user: {
-                id: user.id,
-                email: user.email,
-                fullName: user.fullName,
-                role: user.role || 'user',
-                isEmailVerified: user.isEmailVerified,
-            },
+            user: userResponse,
             access_token: this.jwtService.sign(payload),
         };
     }

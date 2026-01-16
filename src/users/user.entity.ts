@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
 import { Exclude } from 'class-transformer';
 import { PasswordResetToken } from './password-reset-token.entity';
+import { School } from 'src/schools/entities/school.entity';
 // import { PasswordResetToken } from './password-reset-token.entity';
 
 @Entity('users')
@@ -31,6 +32,15 @@ export class User {
     @Column({ default: 'user' })
     role: string; // 'user', 'admin', 'super_admin'
     // ========== END OF ADD ==========
+
+    // ========== ADD SCHOOL RELATION HERE ==========
+    @ManyToOne(() => School, school => school.users, { nullable: true })
+    @JoinColumn({ name: 'schoolId' })
+    school?: School;
+
+    @Column({ nullable: true })
+    schoolId?: string;
+    // ========== END ADD ==========
 
     //   @Column({ nullable: true })
     //   emailVerificationToken: string;

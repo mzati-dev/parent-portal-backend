@@ -1,5 +1,6 @@
 // src/students/entities/grade-config.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
+import { School } from 'src/schools/entities/school.entity';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('grade_configs')
 @Unique(['school_id', 'configuration_name'])
@@ -7,8 +8,16 @@ export class GradeConfig {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ default: 'school-1' })
-    school_id: string;
+    // @Column({ default: 'school-1' })
+    // school_id: string;
+
+    // ADD SCHOOL RELATION HERE
+    @ManyToOne(() => School, school => school.gradeConfigs, { nullable: true })
+    @JoinColumn({ name: 'school_id' })
+    school?: School;
+
+    @Column({ nullable: true })
+    school_id: string; // ADD THIS LINE BACK
 
     @Column()
     configuration_name: string;
