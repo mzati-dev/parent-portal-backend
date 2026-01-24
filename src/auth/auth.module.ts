@@ -11,8 +11,8 @@ import { PasswordResetToken } from '../users/password-reset-token.entity';
 import { UsersModule } from '../users/users.module';
 import { EmailService } from './email.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { School } from 'src/schools/entities/school.entity';
-import { Teacher } from 'src/teachers/entities/teacher.entity';
+import { School } from '../schools/entities/school.entity';
+import { Teacher } from '../teachers/entities/teacher.entity';
 
 @Module({
   imports: [

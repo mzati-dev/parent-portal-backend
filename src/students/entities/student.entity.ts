@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColum
 import { Assessment } from './assessment.entity';
 import { ReportCard } from './report-card.entity';
 import { Class } from './class.entity';
-import { School } from 'src/schools/entities/school.entity';
+import { School } from '../../schools/entities/school.entity';
 
 
 @Entity('students')

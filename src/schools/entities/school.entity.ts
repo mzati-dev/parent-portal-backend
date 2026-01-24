@@ -1,10 +1,19 @@
 // src/entities/school.entity.ts
-import { Class } from 'src/students/entities/class.entity';
-import { GradeConfig } from 'src/students/entities/grade-config.entity';
-import { Student } from 'src/students/entities/student.entity';
-import { Subject } from 'src/students/entities/subject.entity';
-import { User } from 'src/users/user.entity';
+// import { Class } from 'src/students/entities/class.entity';
+// import { GradeConfig } from 'src/students/entities/grade-config.entity';
+// import { Student } from 'src/students/entities/student.entity';
+// import { Subject } from 'src/students/entities/subject.entity';
+// import { User } from 'src/users/user.entity';
+import { Class } from '../../students/entities/class.entity';
+import { GradeConfig } from '../../students/entities/grade-config.entity';
+import { Student } from '../../students/entities/student.entity';
+import { Subject } from '../../students/entities/subject.entity';
+import { User } from '../../users/user.entity';
+
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+
+
+
 
 
 @Entity('schools')

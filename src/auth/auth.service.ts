@@ -7,9 +7,9 @@ import { User } from '../users/user.entity';
 import { PasswordResetToken } from '../users/password-reset-token.entity';
 import { EmailService } from './email.service';
 import * as bcrypt from 'bcryptjs';
-import { School } from 'src/schools/entities/school.entity';
+import { School } from '../schools/entities/school.entity';
 import { TeachersService } from '../teachers/teachers.service'; // ADD THIS IMPORT
-import { Teacher } from 'src/teachers/entities/teacher.entity';
+import { Teacher } from '../teachers/entities/teacher.entity';
 
 @Injectable()
 export class AuthService {

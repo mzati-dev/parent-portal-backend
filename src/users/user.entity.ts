@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
 import { Exclude } from 'class-transformer';
 import { PasswordResetToken } from './password-reset-token.entity';
-import { School } from 'src/schools/entities/school.entity';
+import { School } from '../schools/entities/school.entity';
 // import { PasswordResetToken } from './password-reset-token.entity';
 
 @Entity('users')

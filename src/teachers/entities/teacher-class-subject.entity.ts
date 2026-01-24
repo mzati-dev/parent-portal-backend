@@ -1,8 +1,8 @@
 // src/teachers/entities/teacher-class-subject.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Teacher } from './teacher.entity';
-import { Class } from 'src/students/entities/class.entity';
-import { Subject } from 'src/students/entities/subject.entity';
+import { Class } from '../../students/entities/class.entity';
+import { Subject } from '../../students/entities/subject.entity';
 // import { Class } from '../../classes/entities/class.entity';
 // import { Subject } from '../../subjects/entities/subject.entity';
 

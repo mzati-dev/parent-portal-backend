@@ -1,5 +1,5 @@
 // src/students/entities/grade-config.entity.ts
-import { School } from 'src/schools/entities/school.entity';
+import { School } from '../../schools/entities/school.entity';
 import { Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('grade_configs')

@@ -1,8 +1,8 @@
 // src/students/entities/class.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Student } from './student.entity';
-import { School } from 'src/schools/entities/school.entity';
-import { Teacher } from 'src/teachers/entities/teacher.entity'; // ADD THIS
+import { School } from '../../schools/entities/school.entity';
+import { Teacher } from '../../teachers/entities/teacher.entity'; // ADD THIS
 import { Assessment } from './assessment.entity';
 
 @Entity('classes')

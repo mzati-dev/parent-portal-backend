@@ -1,7 +1,7 @@
 // src/students/entities/subject.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { Assessment } from './assessment.entity';
-import { School } from 'src/schools/entities/school.entity';
+import { School } from '../../schools/entities/school.entity';
 
 @Entity('subjects')
 export class Subject {
