@@ -15,6 +15,7 @@ import { Subject } from './entities/subject.entity';
 import { ReportCard } from './entities/report-card.entity';
 import { GradeConfig } from './entities/grade-config.entity';
 import { Class } from './entities/class.entity'; // ADD THIS
+import { TeachersModule } from 'src/teachers/teachers.module';
 
 @Module({
   imports: [
@@ -24,8 +25,10 @@ import { Class } from './entities/class.entity'; // ADD THIS
       Subject,
       ReportCard,
       GradeConfig,
-      Class  // ADD THIS HERE
-    ])
+      Class // ADD THIS HERE,
+
+    ]),
+    TeachersModule,
   ],
   controllers: [
     StudentsController,

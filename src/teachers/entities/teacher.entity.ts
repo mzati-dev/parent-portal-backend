@@ -22,7 +22,7 @@ export class Teacher {
     is_active: boolean;
 
     // ADD THIS - The relationship to the link table
-    @OneToMany(() => TeacherClassSubject, teacherClassSubject => teacherClassSubject.teacher)
+    @OneToMany(() => TeacherClassSubject, teacherClassSubject => teacherClassSubject.teacher,)
     classSubjects: TeacherClassSubject[];
 
     @CreateDateColumn()
