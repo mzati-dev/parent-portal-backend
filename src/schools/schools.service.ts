@@ -149,6 +149,14 @@ export class SchoolsService {
     school.isActive = true;
     return this.schoolRepository.save(school);
   }
+
+  async permanentlyDelete(id: string) {
+    const school = await this.getSchoolById(id);
+
+    // This is the command that actually uses the CASCADE rules.
+    // It tells the database: "Delete this school AND everything linked to it."
+    return this.schoolRepository.remove(school);
+  }
 }
 
 // // src/schools/school.service.ts
